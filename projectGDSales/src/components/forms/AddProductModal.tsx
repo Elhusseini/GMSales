@@ -100,7 +100,6 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSa
     
     if (validateForm()) {
       const productData = {
-        id: Date.now().toString(),
         name: formData.name,
         category: formData.category,
         sku: formData.sku,
@@ -112,13 +111,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSa
         maxStock: parseInt(formData.maxStock),
         unit: formData.unit,
         status: formData.status,
-        image: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=300',
-        createdAt: new Date().toISOString()
+        image: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=300'
       }
 
       onSave(productData)
-      toast.success('تم إضافة المنتج بنجاح')
-      onClose()
       
       // Reset form
       setFormData({

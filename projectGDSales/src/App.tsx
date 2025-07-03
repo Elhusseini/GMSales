@@ -14,26 +14,29 @@ import ReportsCenter from './pages/ReportsCenter'
 import SystemSettings from './pages/SystemSettings'
 import { AuthProvider } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { DataProvider } from './contexts/DataContext'
 
 function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/users" element={<UsersManagement />} />
-            <Route path="/products" element={<ProductsManagement />} />
-            <Route path="/inventory" element={<InventoryManagement />} />
-            <Route path="/purchases" element={<PurchasesManagement />} />
-            <Route path="/production" element={<ProductionManagement />} />
-            <Route path="/sales" element={<SalesManagement />} />
-            <Route path="/finance" element={<FinanceManagement />} />
-            <Route path="/hr" element={<HRManagement />} />
-            <Route path="/reports" element={<ReportsCenter />} />
-            <Route path="/settings" element={<SystemSettings />} />
-          </Routes>
-        </Layout>
+        <DataProvider>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/users" element={<UsersManagement />} />
+              <Route path="/products" element={<ProductsManagement />} />
+              <Route path="/inventory" element={<InventoryManagement />} />
+              <Route path="/purchases" element={<PurchasesManagement />} />
+              <Route path="/production" element={<ProductionManagement />} />
+              <Route path="/sales" element={<SalesManagement />} />
+              <Route path="/finance" element={<FinanceManagement />} />
+              <Route path="/hr" element={<HRManagement />} />
+              <Route path="/reports" element={<ReportsCenter />} />
+              <Route path="/settings" element={<SystemSettings />} />
+            </Routes>
+          </Layout>
+        </DataProvider>
       </AuthProvider>
     </LanguageProvider>
   )

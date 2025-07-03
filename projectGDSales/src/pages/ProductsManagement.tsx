@@ -1,63 +1,13 @@
 import React, { useState } from 'react'
 import { Plus, Search, Edit, Trash2, Package, Star, Eye } from 'lucide-react'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useData } from '../contexts/DataContext'
 import AddProductModal from '../components/forms/AddProductModal'
 import toast from 'react-hot-toast'
 
-interface Product {
-  id: string
-  name: string
-  category: string
-  price: number
-  cost: number
-  stock: number
-  sku: string
-  status: 'active' | 'inactive'
-  image: string
-  description: string
-}
-
 const ProductsManagement: React.FC = () => {
   const { t, direction } = useLanguage()
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: '1',
-      name: 'قميص قطني رجالي',
-      category: 'قمصان رجالية',
-      price: 120,
-      cost: 80,
-      stock: 156,
-      sku: 'SH-001',
-      status: 'active',
-      image: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=300',
-      description: 'قميص قطني عالي الجودة للرجال'
-    },
-    {
-      id: '2',
-      name: 'فستان صيفي نسائي',
-      category: 'فساتين نسائية',
-      price: 200,
-      cost: 130,
-      stock: 89,
-      sku: 'DR-002',
-      status: 'active',
-      image: 'https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=300',
-      description: 'فستان صيفي أنيق ومريح'
-    },
-    {
-      id: '3',
-      name: 'بنطلون جينز',
-      category: 'بناطيل',
-      price: 180,
-      cost: 120,
-      stock: 34,
-      sku: 'JP-003',
-      status: 'active',
-      image: 'https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg?auto=compress&cs=tinysrgb&w=300',
-      description: 'بنطلون جينز كلاسيكي'
-    }
-  ])
-
+  const { products, addProduct, updateProduct, deleteProduct } = useData()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
@@ -66,8 +16,10 @@ const ProductsManagement: React.FC = () => {
     setShowAddModal(true)
   }
 
-  const handleSaveProduct = (productData: Product) => {
-    setProducts([...products, productData])
+  const handleSaveProduct = (productData: any) => {
+    addProduct(productData)
+    toast.success('تم إضافة المنتج بنجاح')
+    setShowAddModal(false)
   }
 
   const handleEditProduct = (productId: string) => {
@@ -78,7 +30,7 @@ const ProductsManagement: React.FC = () => {
   const handleDeleteProduct = (productId: string) => {
     const product = products.find(p => p.id === productId)
     if (window.confirm(`هل أنت متأكد من حذف المنتج: ${product?.name}؟`)) {
-      setProducts(products.filter(p => p.id !== productId))
+      deleteProduct(productId)
       toast.success('تم حذف المنتج بنجاح')
     }
   }

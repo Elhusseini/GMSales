@@ -19,7 +19,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onSave }) 
     role: '',
     department: '',
     phone: '',
-    status: 'active'
+    status: 'active',
+    permissions: [] as string[]
   })
 
   const [errors, setErrors] = useState<any>({})
@@ -42,6 +43,17 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onSave }) 
     'الإنتاج',
     'الموارد البشرية',
     'الإدارة العامة'
+  ]
+
+  const permissionsList = [
+    { value: 'users', label: 'إدارة المستخدمين' },
+    { value: 'products', label: 'إدارة المنتجات' },
+    { value: 'inventory', label: 'إدارة المخزون' },
+    { value: 'sales', label: 'إدارة المبيعات' },
+    { value: 'purchases', label: 'إدارة المشتريات' },
+    { value: 'finance', label: 'الإدارة المالية' },
+    { value: 'reports', label: 'التقارير' },
+    { value: 'settings', label: 'الإعدادات' }
   ]
 
   const validateForm = () => {
@@ -84,20 +96,16 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onSave }) 
     
     if (validateForm()) {
       const userData = {
-        id: Date.now().toString(),
         name: formData.name,
         email: formData.email,
         role: formData.role,
         department: formData.department,
         phone: formData.phone,
         status: formData.status,
-        lastLogin: 'لم يسجل دخول بعد',
-        permissions: formData.role === 'مدير النظام' ? ['all'] : ['basic']
+        permissions: formData.role === 'مدير النظام' ? ['all'] : formData.permissions
       }
 
       onSave(userData)
-      toast.success('تم إضافة المستخدم بنجاح')
-      onClose()
       
       // Reset form
       setFormData({
@@ -108,7 +116,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onSave }) 
         role: '',
         department: '',
         phone: '',
-        status: 'active'
+        status: 'active',
+        permissions: []
       })
       setErrors({})
     }
@@ -119,6 +128,15 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onSave }) 
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+  }
+
+  const handlePermissionChange = (permission: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: checked 
+        ? [...prev.permissions, permission]
+        : prev.permissions.filter(p => p !== permission)
+    }))
   }
 
   if (!isOpen) return null
@@ -271,6 +289,27 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onSave }) 
               </select>
             </div>
           </div>
+
+          {formData.role !== 'مدير النظام' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                الصلاحيات
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {permissionsList.map((permission) => (
+                  <label key={permission.value} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.permissions.includes(permission.value)}
+                      onChange={(e) => handlePermissionChange(permission.value, e.target.checked)}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <span className="mr-2 text-sm text-gray-700">{permission.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-end space-x-3 pt-6 border-t">
             <button

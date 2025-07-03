@@ -1,82 +1,33 @@
 import React, { useState } from 'react'
 import { Plus, Search, Eye, Edit, DollarSign, Users, ShoppingCart, TrendingUp } from 'lucide-react'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useData } from '../contexts/DataContext'
 import AddCustomerModal from '../components/forms/AddCustomerModal'
 import AddSalesOrderModal from '../components/forms/AddSalesOrderModal'
 import toast from 'react-hot-toast'
 
 const SalesManagement: React.FC = () => {
   const { t, direction } = useLanguage()
+  const { 
+    salesOrders, 
+    addSalesOrder, 
+    customers, 
+    addCustomer, 
+    products 
+  } = useData()
+  
   const [activeTab, setActiveTab] = useState('orders')
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false)
   const [showAddOrderModal, setShowAddOrderModal] = useState(false)
-
-  const [salesOrders, setSalesOrders] = useState([
-    {
-      id: 'SO-001',
-      customer: 'متجر الأناقة',
-      date: '2024-01-15',
-      total: 12500,
-      status: 'confirmed',
-      items: 8,
-      deliveryDate: '2024-01-18'
-    },
-    {
-      id: 'SO-002',
-      customer: 'شركة الموضة الحديثة',
-      date: '2024-01-14',
-      total: 25000,
-      status: 'shipped',
-      items: 15,
-      deliveryDate: '2024-01-17'
-    },
-    {
-      id: 'SO-003',
-      customer: 'مؤسسة الأزياء المتطورة',
-      date: '2024-01-13',
-      total: 8750,
-      status: 'pending',
-      items: 5,
-      deliveryDate: '2024-01-19'
-    }
-  ])
-
-  const [customers, setCustomers] = useState([
-    {
-      id: '1',
-      name: 'متجر الأناقة',
-      contact: 'سعد أحمد',
-      phone: '+966 50 123 4567',
-      email: 'info@elegance-store.com',
-      address: 'الرياض، المملكة العربية السعودية',
-      totalOrders: 12,
-      totalSpent: 145000
-    },
-    {
-      id: '2',
-      name: 'شركة الموضة الحديثة',
-      contact: 'نورا محمد',
-      phone: '+966 55 987 6543',
-      email: 'orders@modern-fashion.com',
-      address: 'جدة، المملكة العربية السعودية',
-      totalOrders: 8,
-      totalSpent: 98000
-    }
-  ])
-
-  // Sample products for the sales order form
-  const products = [
-    { id: '1', name: 'قميص قطني رجالي', price: 120 },
-    { id: '2', name: 'فستان صيفي نسائي', price: 200 },
-    { id: '3', name: 'بنطلون جينز', price: 180 }
-  ]
 
   const handleAddCustomer = () => {
     setShowAddCustomerModal(true)
   }
 
   const handleSaveCustomer = (customerData: any) => {
-    setCustomers([...customers, customerData])
+    addCustomer(customerData)
+    toast.success('تم إضافة العميل بنجاح')
+    setShowAddCustomerModal(false)
   }
 
   const handleNewSalesOrder = () => {
@@ -84,7 +35,9 @@ const SalesManagement: React.FC = () => {
   }
 
   const handleSaveOrder = (orderData: any) => {
-    setSalesOrders([orderData, ...salesOrders])
+    addSalesOrder(orderData)
+    toast.success('تم إنشاء أمر البيع بنجاح')
+    setShowAddOrderModal(false)
   }
 
   const getStatusColor = (status: string) => {
@@ -181,7 +134,9 @@ const SalesManagement: React.FC = () => {
             </div>
             <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
               <p className="text-sm font-medium text-gray-600">{t('sales.averageOrder')}</p>
-              <p className="text-2xl font-bold text-gray-900">{Math.round(salesOrders.reduce((sum, order) => sum + order.total, 0) / salesOrders.length).toLocaleString()} ر.س</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {salesOrders.length > 0 ? Math.round(salesOrders.reduce((sum, order) => sum + order.total, 0) / salesOrders.length).toLocaleString() : 0} ر.س
+              </p>
             </div>
           </div>
         </div>

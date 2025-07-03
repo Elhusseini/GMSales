@@ -1,55 +1,13 @@
 import React, { useState } from 'react'
 import { Plus, Search, Edit, Trash2, Shield, Eye } from 'lucide-react'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useData } from '../contexts/DataContext'
 import AddUserModal from '../components/forms/AddUserModal'
 import toast from 'react-hot-toast'
 
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-  department: string
-  status: 'active' | 'inactive'
-  lastLogin: string
-  permissions: string[]
-}
-
 const UsersManagement: React.FC = () => {
   const { t, direction } = useLanguage()
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      name: 'أحمد محمد',
-      email: 'ahmed@example.com',
-      role: 'مدير النظام',
-      department: 'تقنية المعلومات',
-      status: 'active',
-      lastLogin: '2024-01-15 10:30',
-      permissions: ['all']
-    },
-    {
-      id: '2',
-      name: 'فاطمة علي',
-      email: 'fatma@example.com',
-      role: 'مدير مبيعات',
-      department: 'المبيعات',
-      status: 'active',
-      lastLogin: '2024-01-15 09:15',
-      permissions: ['sales', 'customers', 'reports']
-    },
-    {
-      id: '3',
-      name: 'محمد سعد',
-      email: 'mohammed@example.com',
-      role: 'موظف مخزن',
-      department: 'المخازن',
-      status: 'active',
-      lastLogin: '2024-01-14 16:45',
-      permissions: ['inventory', 'products']
-    }
-  ])
-
+  const { users, addUser, updateUser, deleteUser } = useData()
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
@@ -57,8 +15,10 @@ const UsersManagement: React.FC = () => {
     setShowAddModal(true)
   }
 
-  const handleSaveUser = (userData: User) => {
-    setUsers([...users, userData])
+  const handleSaveUser = (userData: any) => {
+    addUser(userData)
+    toast.success('تم إضافة المستخدم بنجاح')
+    setShowAddModal(false)
   }
 
   const handleEditUser = (userId: string) => {
@@ -69,7 +29,7 @@ const UsersManagement: React.FC = () => {
   const handleDeleteUser = (userId: string) => {
     const user = users.find(u => u.id === userId)
     if (window.confirm(`هل أنت متأكد من حذف المستخدم: ${user?.name}؟`)) {
-      setUsers(users.filter(u => u.id !== userId))
+      deleteUser(userId)
       toast.success('تم حذف المستخدم بنجاح')
     }
   }
