@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Plus, Search, Edit, Trash2, Package, Star, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
+import AddProductModal from '../components/modals/AddProductModal'
 
 interface Product {
   id: string
@@ -16,7 +17,7 @@ interface Product {
 }
 
 const ProductsManagement: React.FC = () => {
-  const [products] = useState<Product[]>([
+  const [products, setProducts] = useState<Product[]>([
     {
       id: '1',
       name: 'قميص قطني رجالي',
@@ -57,17 +58,42 @@ const ProductsManagement: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [showAddProductModal, setShowAddProductModal] = useState(false)
 
   const handleAddProduct = () => {
-    toast.success('سيتم فتح نافذة إضافة منتج جديد')
+    setShowAddProductModal(true)
+  }
+
+  const handleSaveNewProduct = (productData: Omit<Product, 'id'>) => {
+    const newProduct: Product = {
+      ...productData,
+      id: Date.now().toString()
+    }
+    setProducts(prevProducts => [...prevProducts, newProduct])
   }
 
   const handleEditProduct = (productId: string) => {
-    toast.success('سيتم فتح نافذة التعديل')
+    const product = products.find(p => p.id === productId)
+    if (product) {
+      toast.success(`سيتم فتح نافذة تعديل المنتج: ${product.name}`)
+    }
   }
 
   const handleDeleteProduct = (productId: string) => {
-    toast.success('تم حذف المنتج بنجاح')
+    const product = products.find(p => p.id === productId)
+    if (product) {
+      if (window.confirm(`هل أنت متأكد من حذف المنتج "${product.name}"؟`)) {
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== productId))
+        toast.success('تم حذف المنتج بنجاح')
+      }
+    }
+  }
+
+  const handleViewProduct = (productId: string) => {
+    const product = products.find(p => p.id === productId)
+    if (product) {
+      toast.success(`عرض تفاصيل المنتج: ${product.name}`)
+    }
   }
 
   const filteredProducts = products.filter(product => {
@@ -237,6 +263,7 @@ const ProductsManagement: React.FC = () => {
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
+                    onClick={() => handleViewProduct(product.id)}
                     className="text-gray-600 hover:text-gray-900 p-1 rounded transition-colors"
                     title="عرض التفاصيل"
                   >
@@ -262,6 +289,13 @@ const ProductsManagement: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={showAddProductModal}
+        onClose={() => setShowAddProductModal(false)}
+        onSave={handleSaveNewProduct}
+      />
     </div>
   )
 }

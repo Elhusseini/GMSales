@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Plus, Search, Edit, Trash2, Shield, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
+import AddUserModal from '../components/modals/AddUserModal'
 
 interface User {
   id: string
@@ -14,7 +15,7 @@ interface User {
 }
 
 const UsersManagement: React.FC = () => {
-  const [users] = useState<User[]>([
+  const [users, setUsers] = useState<User[]>([
     {
       id: '1',
       name: 'أحمد محمد',
@@ -54,12 +55,37 @@ const UsersManagement: React.FC = () => {
     setShowAddModal(true)
   }
 
+  const handleSaveNewUser = (userData: Omit<User, 'id' | 'lastLogin'>) => {
+    const newUser: User = {
+      ...userData,
+      id: Date.now().toString(),
+      lastLogin: 'لم يسجل دخول بعد'
+    }
+    setUsers(prevUsers => [...prevUsers, newUser])
+  }
+
   const handleEditUser = (userId: string) => {
-    toast.success('سيتم فتح نافذة التعديل')
+    const user = users.find(u => u.id === userId)
+    if (user) {
+      toast.success(`سيتم فتح نافذة تعديل المستخدم: ${user.name}`)
+    }
+  }
+
+  const handleViewUser = (userId: string) => {
+    const user = users.find(u => u.id === userId)
+    if (user) {
+      toast.success(`عرض تفاصيل المستخدم: ${user.name}`)
+    }
   }
 
   const handleDeleteUser = (userId: string) => {
-    toast.success('تم حذف المستخدم بنجاح')
+    const user = users.find(u => u.id === userId)
+    if (user) {
+      if (window.confirm(`هل أنت متأكد من حذف المستخدم "${user.name}"؟`)) {
+        setUsers(prevUsers => prevUsers.filter(u => u.id !== userId))
+        toast.success('تم حذف المستخدم بنجاح')
+      }
+    }
   }
 
   const filteredUsers = users.filter(user =>
@@ -192,6 +218,7 @@ const UsersManagement: React.FC = () => {
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
+                        onClick={() => handleViewUser(user.id)}
                         className="text-gray-600 hover:text-gray-900 p-1 rounded transition-colors"
                         title="عرض التفاصيل"
                       >
@@ -246,7 +273,7 @@ const UsersManagement: React.FC = () => {
             </div>
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">المدراء</p>
-              <p className="text-2xl font-bold text-gray-900">2</p>
+              <p className="text-2xl font-bold text-gray-900">{users.filter(u => u.role.includes('مدير')).length}</p>
             </div>
           </div>
         </div>
@@ -258,11 +285,18 @@ const UsersManagement: React.FC = () => {
             </div>
             <div className="mr-4">
               <p className="text-sm font-medium text-gray-600">الموظفين</p>
-              <p className="text-2xl font-bold text-gray-900">1</p>
+              <p className="text-2xl font-bold text-gray-900">{users.filter(u => u.role.includes('موظف')).length}</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      <AddUserModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveNewUser}
+      />
     </div>
   )
 }
