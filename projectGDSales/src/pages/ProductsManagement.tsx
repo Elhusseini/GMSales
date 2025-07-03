@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Plus, Search, Edit, Trash2, Package, Star, Eye } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import AddProductModal from '../components/forms/AddProductModal'
 import toast from 'react-hot-toast'
-import AddProductModal from '../components/modals/AddProductModal'
 
 interface Product {
   id: string
@@ -17,6 +18,7 @@ interface Product {
 }
 
 const ProductsManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [products, setProducts] = useState<Product[]>([
     {
       id: '1',
@@ -58,42 +60,32 @@ const ProductsManagement: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [showAddProductModal, setShowAddProductModal] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const handleAddProduct = () => {
-    setShowAddProductModal(true)
+    setShowAddModal(true)
   }
 
-  const handleSaveNewProduct = (productData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: Date.now().toString()
-    }
-    setProducts(prevProducts => [...prevProducts, newProduct])
+  const handleSaveProduct = (productData: Product) => {
+    setProducts([...products, productData])
   }
 
   const handleEditProduct = (productId: string) => {
     const product = products.find(p => p.id === productId)
-    if (product) {
-      toast.success(`سيتم فتح نافذة تعديل المنتج: ${product.name}`)
-    }
+    toast.success(`تم فتح نموذج تعديل المنتج: ${product?.name}`)
   }
 
   const handleDeleteProduct = (productId: string) => {
     const product = products.find(p => p.id === productId)
-    if (product) {
-      if (window.confirm(`هل أنت متأكد من حذف المنتج "${product.name}"؟`)) {
-        setProducts(prevProducts => prevProducts.filter(p => p.id !== productId))
-        toast.success('تم حذف المنتج بنجاح')
-      }
+    if (window.confirm(`هل أنت متأكد من حذف المنتج: ${product?.name}؟`)) {
+      setProducts(products.filter(p => p.id !== productId))
+      toast.success('تم حذف المنتج بنجاح')
     }
   }
 
   const handleViewProduct = (productId: string) => {
     const product = products.find(p => p.id === productId)
-    if (product) {
-      toast.success(`عرض تفاصيل المنتج: ${product.name}`)
-    }
+    toast.success(`عرض تفاصيل المنتج: ${product?.name}`)
   }
 
   const filteredProducts = products.filter(product => {
@@ -110,8 +102,8 @@ const ProductsManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة المنتجات</h1>
-          <p className="text-gray-600 mt-1">إدارة منتجات المصنع وتصنيفاتها</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('products.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('products.description')}</p>
         </div>
         
         <button
@@ -119,7 +111,7 @@ const ProductsManagement: React.FC = () => {
           className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
         >
           <Plus className="h-5 w-5" />
-          <span>إضافة منتج جديد</span>
+          <span>{t('products.addNew')}</span>
         </button>
       </div>
 
@@ -130,8 +122,8 @@ const ProductsManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <Package className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي المنتجات</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('products.totalProducts')}</p>
               <p className="text-2xl font-bold text-gray-900">{products.length}</p>
             </div>
           </div>
@@ -142,8 +134,8 @@ const ProductsManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <Star className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">المنتجات النشطة</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('products.activeProducts')}</p>
               <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.status === 'active').length}</p>
             </div>
           </div>
@@ -154,8 +146,8 @@ const ProductsManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <Package className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">الفئات</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('products.categories')}</p>
               <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
             </div>
           </div>
@@ -166,8 +158,8 @@ const ProductsManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-orange-100">
               <Package className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي المخزون</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('products.totalStock')}</p>
               <p className="text-2xl font-bold text-gray-900">{products.reduce((sum, p) => sum + p.stock, 0)}</p>
             </div>
           </div>
@@ -178,14 +170,14 @@ const ProductsManagement: React.FC = () => {
       <div className="bg-white rounded-lg p-6 card-shadow">
         <div className="flex items-center space-x-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
             <input
               type="text"
-              placeholder="البحث عن المنتجات..."
+              placeholder={t('products.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              dir="rtl"
+              className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+              dir={direction}
             />
           </div>
           
@@ -194,14 +186,14 @@ const ProductsManagement: React.FC = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            <option value="">جميع الفئات</option>
+            <option value="">{t('products.allCategories')}</option>
             {categories.map(category => (
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
           
           <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-            <option>جميع الحالات</option>
+            <option>{t('products.allStatuses')}</option>
             <option>نشط</option>
             <option>غير نشط</option>
           </select>
@@ -242,7 +234,7 @@ const ProductsManagement: React.FC = () => {
                   <p className="text-lg font-bold text-primary-600">{product.price} ر.س</p>
                   <p className="text-sm text-gray-500">التكلفة: {product.cost} ر.س</p>
                 </div>
-                <div className="text-left">
+                <div className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                   <p className="text-sm font-medium text-gray-900">المخزون</p>
                   <p className={`text-sm font-bold ${
                     product.stock > 50 ? 'text-green-600' : 
@@ -278,7 +270,7 @@ const ProductsManagement: React.FC = () => {
                   </button>
                 </div>
                 
-                <div className="text-right">
+                <div className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                   <p className="text-xs text-gray-500">الربح</p>
                   <p className="text-sm font-bold text-green-600">
                     {product.price - product.cost} ر.س
@@ -292,9 +284,9 @@ const ProductsManagement: React.FC = () => {
 
       {/* Add Product Modal */}
       <AddProductModal
-        isOpen={showAddProductModal}
-        onClose={() => setShowAddProductModal(false)}
-        onSave={handleSaveNewProduct}
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveProduct}
       />
     </div>
   )

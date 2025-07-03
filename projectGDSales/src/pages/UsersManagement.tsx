@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Plus, Search, Edit, Trash2, Shield, Eye } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import AddUserModal from '../components/forms/AddUserModal'
 import toast from 'react-hot-toast'
-import AddUserModal from '../components/modals/AddUserModal'
 
 interface User {
   id: string
@@ -15,6 +16,7 @@ interface User {
 }
 
 const UsersManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [users, setUsers] = useState<User[]>([
     {
       id: '1',
@@ -55,37 +57,26 @@ const UsersManagement: React.FC = () => {
     setShowAddModal(true)
   }
 
-  const handleSaveNewUser = (userData: Omit<User, 'id' | 'lastLogin'>) => {
-    const newUser: User = {
-      ...userData,
-      id: Date.now().toString(),
-      lastLogin: 'لم يسجل دخول بعد'
-    }
-    setUsers(prevUsers => [...prevUsers, newUser])
+  const handleSaveUser = (userData: User) => {
+    setUsers([...users, userData])
   }
 
   const handleEditUser = (userId: string) => {
     const user = users.find(u => u.id === userId)
-    if (user) {
-      toast.success(`سيتم فتح نافذة تعديل المستخدم: ${user.name}`)
+    toast.success(`تم فتح نموذج تعديل المستخدم: ${user?.name}`)
+  }
+
+  const handleDeleteUser = (userId: string) => {
+    const user = users.find(u => u.id === userId)
+    if (window.confirm(`هل أنت متأكد من حذف المستخدم: ${user?.name}؟`)) {
+      setUsers(users.filter(u => u.id !== userId))
+      toast.success('تم حذف المستخدم بنجاح')
     }
   }
 
   const handleViewUser = (userId: string) => {
     const user = users.find(u => u.id === userId)
-    if (user) {
-      toast.success(`عرض تفاصيل المستخدم: ${user.name}`)
-    }
-  }
-
-  const handleDeleteUser = (userId: string) => {
-    const user = users.find(u => u.id === userId)
-    if (user) {
-      if (window.confirm(`هل أنت متأكد من حذف المستخدم "${user.name}"؟`)) {
-        setUsers(prevUsers => prevUsers.filter(u => u.id !== userId))
-        toast.success('تم حذف المستخدم بنجاح')
-      }
-    }
+    toast.success(`عرض تفاصيل المستخدم: ${user?.name}`)
   }
 
   const filteredUsers = users.filter(user =>
@@ -99,7 +90,7 @@ const UsersManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة المستخدمين</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('sidebar.users')}</h1>
           <p className="text-gray-600 mt-1">إدارة حسابات المستخدمين والصلاحيات</p>
         </div>
         
@@ -116,14 +107,14 @@ const UsersManagement: React.FC = () => {
       <div className="bg-white rounded-lg p-6 card-shadow">
         <div className="flex items-center space-x-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
             <input
               type="text"
               placeholder="البحث عن المستخدمين..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              dir="rtl"
+              className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+              dir={direction}
             />
           </div>
           
@@ -149,22 +140,22 @@ const UsersManagement: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                   المستخدم
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                   الدور
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                   القسم
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                   الحالة
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                   آخر تسجيل دخول
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                   الإجراءات
                 </th>
               </tr>
@@ -181,7 +172,7 @@ const UsersManagement: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="mr-4">
+                      <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
                         <div className="text-sm font-medium text-gray-900">{user.name}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
@@ -189,7 +180,7 @@ const UsersManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <Shield className="h-4 w-4 text-gray-400 mr-2" />
+                      <Shield className={`h-4 w-4 text-gray-400 ${direction === 'rtl' ? 'ml-2' : 'mr-2'}`} />
                       <span className="text-sm text-gray-900">{user.role}</span>
                     </div>
                   </td>
@@ -247,7 +238,7 @@ const UsersManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <Shield className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
               <p className="text-sm font-medium text-gray-600">إجمالي المستخدمين</p>
               <p className="text-2xl font-bold text-gray-900">{users.length}</p>
             </div>
@@ -259,7 +250,7 @@ const UsersManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <Shield className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
               <p className="text-sm font-medium text-gray-600">المستخدمين النشطين</p>
               <p className="text-2xl font-bold text-gray-900">{users.filter(u => u.status === 'active').length}</p>
             </div>
@@ -271,7 +262,7 @@ const UsersManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <Shield className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
               <p className="text-sm font-medium text-gray-600">المدراء</p>
               <p className="text-2xl font-bold text-gray-900">{users.filter(u => u.role.includes('مدير')).length}</p>
             </div>
@@ -283,7 +274,7 @@ const UsersManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-orange-100">
               <Shield className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="mr-4">
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
               <p className="text-sm font-medium text-gray-600">الموظفين</p>
               <p className="text-2xl font-bold text-gray-900">{users.filter(u => u.role.includes('موظف')).length}</p>
             </div>
@@ -295,7 +286,7 @@ const UsersManagement: React.FC = () => {
       <AddUserModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSave={handleSaveNewUser}
+        onSave={handleSaveUser}
       />
     </div>
   )

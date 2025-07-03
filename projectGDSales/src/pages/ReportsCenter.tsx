@@ -1,9 +1,40 @@
 import React, { useState } from 'react'
 import { FileText, Download, Calendar, Filter, TrendingUp, Package, DollarSign, Users } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import toast from 'react-hot-toast'
 
 const ReportsCenter: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [selectedReport, setSelectedReport] = useState('')
   const [dateRange, setDateRange] = useState('month')
+
+  const handleExportReport = () => {
+    if (selectedReport) {
+      toast.success(`تم تصدير تقرير: ${selectedReport}`)
+    } else {
+      toast.error('يرجى اختيار تقرير أولاً')
+    }
+  }
+
+  const handleFilterReport = () => {
+    toast.success('تم تطبيق الفلاتر على التقرير')
+  }
+
+  const handleCustomDate = () => {
+    toast.success('تم فتح نافذة اختيار التاريخ المخصص')
+  }
+
+  const handleGenerateReport = () => {
+    if (selectedReport) {
+      toast.success(`تم إنشاء تقرير: ${selectedReport}`)
+    } else {
+      toast.error('يرجى اختيار تقرير أولاً')
+    }
+  }
+
+  const handleDownloadRecentReport = (reportName: string) => {
+    toast.success(`تم تنزيل التقرير: ${reportName}`)
+  }
 
   const reportCategories = [
     {
@@ -75,13 +106,19 @@ const ReportsCenter: React.FC = () => {
     { label: 'عدد العملاء', value: '94', change: '+3.7%' }
   ]
 
+  const recentReports = [
+    { name: 'تقرير المبيعات الشهرية - ديسمبر 2023', date: '2024-01-15', size: '2.4 MB' },
+    { name: 'تقرير المخزون - نهاية العام', date: '2024-01-10', size: '1.8 MB' },
+    { name: 'قائمة الدخل - Q4 2023', date: '2024-01-05', size: '956 KB' }
+  ]
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">مركز التقارير</h1>
-          <p className="text-gray-600 mt-1">تقارير شاملة ومفصلة لجميع أقسام المصنع</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('reports.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('reports.description')}</p>
         </div>
         
         <div className="flex items-center space-x-3">
@@ -90,17 +127,20 @@ const ReportsCenter: React.FC = () => {
             onChange={(e) => setDateRange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            <option value="today">اليوم</option>
-            <option value="week">هذا الأسبوع</option>
-            <option value="month">هذا الشهر</option>
-            <option value="quarter">هذا الربع</option>
-            <option value="year">هذا العام</option>
-            <option value="custom">فترة مخصصة</option>
+            <option value="today">{t('reports.today')}</option>
+            <option value="week">{t('reports.thisWeek')}</option>
+            <option value="month">{t('reports.thisMonth')}</option>
+            <option value="quarter">{t('reports.thisQuarter')}</option>
+            <option value="year">{t('reports.thisYear')}</option>
+            <option value="custom">{t('reports.customPeriod')}</option>
           </select>
           
-          <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+          <button 
+            onClick={handleExportReport}
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
             <Download className="h-5 w-5" />
-            <span>تصدير التقرير</span>
+            <span>{t('reports.exportReport')}</span>
           </button>
         </div>
       </div>
@@ -113,7 +153,7 @@ const ReportsCenter: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.label}</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                <p className="text-sm text-green-600 mt-1">{stat.change} من الفترة السابقة</p>
+                <p className="text-sm text-green-600 mt-1">{stat.change} {t('reports.fromPrevious')}</p>
               </div>
               <div className="p-3 rounded-lg bg-primary-100">
                 <TrendingUp className="h-6 w-6 text-primary-600" />
@@ -134,7 +174,7 @@ const ReportsCenter: React.FC = () => {
                   <div className={`p-3 rounded-lg ${category.color}`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mr-4">{category.title}</h3>
+                  <h3 className={`text-lg font-semibold text-gray-900 ${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>{category.title}</h3>
                 </div>
               </div>
               
@@ -144,7 +184,7 @@ const ReportsCenter: React.FC = () => {
                     <button
                       key={reportIndex}
                       onClick={() => setSelectedReport(report)}
-                      className={`w-full text-right p-3 rounded-lg transition-colors hover:bg-gray-50 border ${
+                      className={`w-full ${direction === 'rtl' ? 'text-right' : 'text-left'} p-3 rounded-lg transition-colors hover:bg-gray-50 border ${
                         selectedReport === report 
                           ? 'border-primary-200 bg-primary-50 text-primary-700' 
                           : 'border-gray-200 text-gray-700'
@@ -153,7 +193,13 @@ const ReportsCenter: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{report}</span>
                         <div className="flex items-center space-x-2">
-                          <button className="text-gray-400 hover:text-gray-600">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDownloadRecentReport(report)
+                            }}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
                             <Download className="h-4 w-4" />
                           </button>
                           <FileText className="h-4 w-4 text-gray-400" />
@@ -175,15 +221,24 @@ const ReportsCenter: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">{selectedReport}</h3>
               <div className="flex items-center space-x-3">
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleFilterReport}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
                   <Filter className="h-4 w-4" />
                   <span>فلترة</span>
                 </button>
-                <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={handleCustomDate}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
                   <Calendar className="h-4 w-4" />
                   <span>تاريخ مخصص</span>
                 </button>
-                <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+                <button 
+                  onClick={handleExportReport}
+                  className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                >
                   <Download className="h-4 w-4" />
                   <span>تصدير</span>
                 </button>
@@ -200,8 +255,11 @@ const ReportsCenter: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">معاينة التقرير</h3>
                 <p className="text-gray-600">سيتم عرض بيانات التقرير "{selectedReport}" هنا</p>
                 <div className="mt-6">
-                  <button className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-                    إنشاء التقرير
+                  <button 
+                    onClick={handleGenerateReport}
+                    className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    {t('reports.generateReport')}
                   </button>
                 </div>
               </div>
@@ -213,28 +271,27 @@ const ReportsCenter: React.FC = () => {
       {/* Recent Reports */}
       <div className="bg-white rounded-lg card-shadow">
         <div className="border-b border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900">التقارير الأخيرة</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('reports.recentReports')}</h3>
         </div>
         
         <div className="p-6">
           <div className="space-y-4">
-            {[
-              { name: 'تقرير المبيعات الشهرية - ديسمبر 2023', date: '2024-01-15', size: '2.4 MB' },
-              { name: 'تقرير المخزون - نهاية العام', date: '2024-01-10', size: '1.8 MB' },
-              { name: 'قائمة الدخل - Q4 2023', date: '2024-01-05', size: '956 KB' }
-            ].map((report, index) => (
+            {recentReports.map((report, index) => (
               <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <div className="flex items-center">
                   <div className="p-2 rounded-lg bg-blue-100">
                     <FileText className="h-5 w-5 text-blue-600" />
                   </div>
-                  <div className="mr-4">
+                  <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
                     <h4 className="text-sm font-medium text-gray-900">{report.name}</h4>
                     <p className="text-sm text-gray-500">{report.date} • {report.size}</p>
                   </div>
                 </div>
                 
-                <button className="text-gray-400 hover:text-gray-600">
+                <button 
+                  onClick={() => handleDownloadRecentReport(report.name)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <Download className="h-5 w-5" />
                 </button>
               </div>

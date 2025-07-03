@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import { Package, AlertTriangle, TrendingUp, TrendingDown, Plus, Search } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import toast from 'react-hot-toast'
 
 const InventoryManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [activeTab, setActiveTab] = useState('overview')
 
   const inventoryData = [
@@ -15,6 +18,14 @@ const InventoryManagement: React.FC = () => {
     { id: '2', type: 'out', product: 'فستان صيفي نسائي', quantity: 15, date: '2024-01-15', reference: 'SO-123', notes: 'شحن للعميل أحمد محمد' },
     { id: '3', type: 'transfer', product: 'بنطلون جينز', quantity: 10, date: '2024-01-14', reference: 'TR-001', notes: 'تحويل بين المخازن' },
   ]
+
+  const handleStockCount = () => {
+    toast.success('تم فتح نموذج جرد المخزون')
+  }
+
+  const handleStockMovement = () => {
+    toast.success('تم فتح نموذج حركة مخزنية جديدة')
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -37,18 +48,24 @@ const InventoryManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة المخزون</h1>
-          <p className="text-gray-600 mt-1">تتبع ومراقبة مستويات المخزون والحركات</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('inventory.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('inventory.description')}</p>
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          <button 
+            onClick={handleStockCount}
+            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>جرد مخزون</span>
+            <span>{t('inventory.stockCount')}</span>
           </button>
-          <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+          <button 
+            onClick={handleStockMovement}
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>حركة مخزنية</span>
+            <span>{t('inventory.stockMovement')}</span>
           </button>
         </div>
       </div>
@@ -60,8 +77,8 @@ const InventoryManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <Package className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي الأصناف</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('inventory.totalItems')}</p>
               <p className="text-2xl font-bold text-gray-900">{inventoryData.length}</p>
             </div>
           </div>
@@ -72,8 +89,8 @@ const InventoryManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <TrendingUp className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي الكمية</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('inventory.totalQuantity')}</p>
               <p className="text-2xl font-bold text-gray-900">{inventoryData.reduce((sum, item) => sum + item.currentStock, 0)}</p>
             </div>
           </div>
@@ -84,8 +101,8 @@ const InventoryManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-red-100">
               <AlertTriangle className="h-6 w-6 text-red-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">تحت الحد الأدنى</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('inventory.belowMinimum')}</p>
               <p className="text-2xl font-bold text-gray-900">{inventoryData.filter(item => item.status === 'low').length}</p>
             </div>
           </div>
@@ -96,8 +113,8 @@ const InventoryManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <Package className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">قيمة المخزون</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('inventory.stockValue')}</p>
               <p className="text-2xl font-bold text-gray-900">245,000 ر.س</p>
             </div>
           </div>
@@ -116,7 +133,7 @@ const InventoryManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              نظرة عامة
+              {t('inventory.overview')}
             </button>
             <button
               onClick={() => setActiveTab('movements')}
@@ -126,7 +143,7 @@ const InventoryManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              حركات المخزون
+              {t('inventory.movements')}
             </button>
             <button
               onClick={() => setActiveTab('locations')}
@@ -136,7 +153,7 @@ const InventoryManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              مواقع التخزين
+              {t('inventory.locations')}
             </button>
           </nav>
         </div>
@@ -146,12 +163,12 @@ const InventoryManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في المخزون..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('inventory.searchPlaceholder')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -160,22 +177,22 @@ const InventoryManagement: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         المنتج
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الكمية الحالية
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('inventory.currentStock')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الحد الأدنى
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('inventory.minimumLevel')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الحد الأقصى
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('inventory.maximumLevel')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الموقع
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('inventory.location')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         الحالة
                       </th>
                     </tr>
@@ -203,8 +220,8 @@ const InventoryManagement: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
-                            {item.status === 'low' ? 'تحت الحد الأدنى' : 
-                             item.status === 'high' ? 'فوق الحد الأقصى' : 'طبيعي'}
+                            {item.status === 'low' ? t('inventory.low') : 
+                             item.status === 'high' ? t('inventory.high') : t('inventory.normal')}
                           </span>
                         </td>
                       </tr>
@@ -232,7 +249,7 @@ const InventoryManagement: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="text-left">
+                      <div className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                         <div className="flex items-center space-x-2">
                           <span className={`text-sm font-bold ${
                             movement.type === 'in' ? 'text-green-600' : 

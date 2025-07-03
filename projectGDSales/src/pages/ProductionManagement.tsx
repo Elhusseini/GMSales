@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
-import { Plus, Search, Factory, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Factory, Clock, CheckCircle, AlertTriangle, Package } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import toast from 'react-hot-toast'
 
 const ProductionManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [activeTab, setActiveTab] = useState('orders')
 
-  const productionOrders = [
+  const [productionOrders, setProductionOrders] = useState([
     {
       id: 'PR-001',
       product: 'قميص قطني رجالي',
@@ -35,7 +38,23 @@ const ProductionManagement: React.FC = () => {
       progress: 0,
       materials: ['قماش جينز', 'خيوط قوية', 'أزرار معدنية']
     }
-  ]
+  ])
+
+  const handleNewProductionOrder = () => {
+    const newOrder = {
+      id: `PR-${String(productionOrders.length + 1).padStart(3, '0')}`,
+      product: 'منتج جديد',
+      quantity: Math.floor(Math.random() * 100) + 50,
+      status: 'planned' as const,
+      startDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      progress: 0,
+      materials: ['مواد خام', 'خيوط', 'إكسسوارات']
+    }
+    
+    setProductionOrders([newOrder, ...productionOrders])
+    toast.success('تم إضافة أمر إنتاج جديد بنجاح')
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -72,13 +91,16 @@ const ProductionManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة الإنتاج</h1>
-          <p className="text-gray-600 mt-1">متابعة أوامر الإنتاج والعمليات التصنيعية</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('production.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('production.description')}</p>
         </div>
         
-        <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+        <button 
+          onClick={handleNewProductionOrder}
+          className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+        >
           <Plus className="h-5 w-5" />
-          <span>أمر إنتاج جديد</span>
+          <span>{t('production.newOrder')}</span>
         </button>
       </div>
 
@@ -89,8 +111,8 @@ const ProductionManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <Factory className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">أوامر الإنتاج</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('production.orders')}</p>
               <p className="text-2xl font-bold text-gray-900">{productionOrders.length}</p>
             </div>
           </div>
@@ -101,8 +123,8 @@ const ProductionManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">مكتملة</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('production.completed')}</p>
               <p className="text-2xl font-bold text-gray-900">{productionOrders.filter(order => order.status === 'completed').length}</p>
             </div>
           </div>
@@ -113,8 +135,8 @@ const ProductionManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-orange-100">
               <Factory className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">قيد التنفيذ</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('production.inProgress')}</p>
               <p className="text-2xl font-bold text-gray-900">{productionOrders.filter(order => order.status === 'in_progress').length}</p>
             </div>
           </div>
@@ -125,8 +147,8 @@ const ProductionManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <Clock className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي الكمية</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('production.totalQuantity')}</p>
               <p className="text-2xl font-bold text-gray-900">{productionOrders.reduce((sum, order) => sum + order.quantity, 0)}</p>
             </div>
           </div>
@@ -145,7 +167,7 @@ const ProductionManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              أوامر الإنتاج
+              {t('production.orders')}
             </button>
             <button
               onClick={() => setActiveTab('materials')}
@@ -155,7 +177,7 @@ const ProductionManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              المواد الخام
+              {t('production.materials')}
             </button>
             <button
               onClick={() => setActiveTab('stages')}
@@ -165,7 +187,7 @@ const ProductionManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              مراحل الإنتاج
+              {t('production.stages')}
             </button>
           </nav>
         </div>
@@ -175,12 +197,12 @@ const ProductionManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في أوامر الإنتاج..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('production.searchPlaceholder')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -197,14 +219,14 @@ const ProductionManagement: React.FC = () => {
                       
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
                         {getStatusIcon(order.status)}
-                        <span className="mr-1">{getStatusText(order.status)}</span>
+                        <span className={`${direction === 'rtl' ? 'mr-1' : 'ml-1'}`}>{getStatusText(order.status)}</span>
                       </span>
                     </div>
 
                     {/* Progress Bar */}
                     <div className="mb-4">
                       <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-700">التقدم</span>
+                        <span className="text-sm font-medium text-gray-700">{t('production.progress')}</span>
                         <span className="text-sm text-gray-500">{order.progress}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -218,18 +240,18 @@ const ProductionManagement: React.FC = () => {
                     {/* Dates */}
                     <div className="flex justify-between mb-4 text-sm">
                       <div>
-                        <p className="text-gray-600">تاريخ البدء</p>
+                        <p className="text-gray-600">{t('production.startDate')}</p>
                         <p className="font-medium">{order.startDate}</p>
                       </div>
                       <div>
-                        <p className="text-gray-600">تاريخ الاستحقاق</p>
+                        <p className="text-gray-600">{t('production.dueDate')}</p>
                         <p className="font-medium">{order.dueDate}</p>
                       </div>
                     </div>
 
                     {/* Materials */}
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-2">المواد المطلوبة:</p>
+                      <p className="text-sm font-medium text-gray-700 mb-2">{t('production.requiredMaterials')}:</p>
                       <div className="flex flex-wrap gap-1">
                         {order.materials.map((material, index) => (
                           <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">

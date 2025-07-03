@@ -1,10 +1,17 @@
 import React, { useState } from 'react'
 import { Plus, Search, Eye, Edit, DollarSign, Users, ShoppingCart, TrendingUp } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import AddCustomerModal from '../components/forms/AddCustomerModal'
+import AddSalesOrderModal from '../components/forms/AddSalesOrderModal'
+import toast from 'react-hot-toast'
 
 const SalesManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [activeTab, setActiveTab] = useState('orders')
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false)
+  const [showAddOrderModal, setShowAddOrderModal] = useState(false)
 
-  const salesOrders = [
+  const [salesOrders, setSalesOrders] = useState([
     {
       id: 'SO-001',
       customer: 'متجر الأناقة',
@@ -32,9 +39,9 @@ const SalesManagement: React.FC = () => {
       items: 5,
       deliveryDate: '2024-01-19'
     }
-  ]
+  ])
 
-  const customers = [
+  const [customers, setCustomers] = useState([
     {
       id: '1',
       name: 'متجر الأناقة',
@@ -55,7 +62,30 @@ const SalesManagement: React.FC = () => {
       totalOrders: 8,
       totalSpent: 98000
     }
+  ])
+
+  // Sample products for the sales order form
+  const products = [
+    { id: '1', name: 'قميص قطني رجالي', price: 120 },
+    { id: '2', name: 'فستان صيفي نسائي', price: 200 },
+    { id: '3', name: 'بنطلون جينز', price: 180 }
   ]
+
+  const handleAddCustomer = () => {
+    setShowAddCustomerModal(true)
+  }
+
+  const handleSaveCustomer = (customerData: any) => {
+    setCustomers([...customers, customerData])
+  }
+
+  const handleNewSalesOrder = () => {
+    setShowAddOrderModal(true)
+  }
+
+  const handleSaveOrder = (orderData: any) => {
+    setSalesOrders([orderData, ...salesOrders])
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,11 +100,11 @@ const SalesManagement: React.FC = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'مؤكد'
-      case 'shipped': return 'تم الشحن'
-      case 'delivered': return 'تم التسليم'
-      case 'pending': return 'في الانتظار'
-      case 'cancelled': return 'ملغي'
+      case 'confirmed': return t('sales.confirmed')
+      case 'shipped': return t('sales.shipped')
+      case 'delivered': return t('sales.delivered')
+      case 'pending': return t('sales.pending')
+      case 'cancelled': return t('sales.cancelled')
       default: return 'غير محدد'
     }
   }
@@ -84,18 +114,24 @@ const SalesManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة المبيعات</h1>
-          <p className="text-gray-600 mt-1">إدارة أوامر البيع والعملاء</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('sales.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('sales.description')}</p>
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          <button 
+            onClick={handleAddCustomer}
+            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>إضافة عميل</span>
+            <span>{t('sales.addCustomer')}</span>
           </button>
-          <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+          <button 
+            onClick={handleNewSalesOrder}
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>أمر بيع جديد</span>
+            <span>{t('sales.newOrder')}</span>
           </button>
         </div>
       </div>
@@ -107,8 +143,8 @@ const SalesManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <ShoppingCart className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">أوامر البيع</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('sales.orders')}</p>
               <p className="text-2xl font-bold text-gray-900">{salesOrders.length}</p>
             </div>
           </div>
@@ -119,8 +155,8 @@ const SalesManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <DollarSign className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي المبيعات</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('sales.totalSales')}</p>
               <p className="text-2xl font-bold text-gray-900">{salesOrders.reduce((sum, order) => sum + order.total, 0).toLocaleString()} ر.س</p>
             </div>
           </div>
@@ -131,8 +167,8 @@ const SalesManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <Users className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">العملاء النشطين</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('sales.activeCustomers')}</p>
               <p className="text-2xl font-bold text-gray-900">{customers.length}</p>
             </div>
           </div>
@@ -143,8 +179,8 @@ const SalesManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-orange-100">
               <TrendingUp className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">متوسط قيمة الطلب</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('sales.averageOrder')}</p>
               <p className="text-2xl font-bold text-gray-900">{Math.round(salesOrders.reduce((sum, order) => sum + order.total, 0) / salesOrders.length).toLocaleString()} ر.س</p>
             </div>
           </div>
@@ -163,7 +199,7 @@ const SalesManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              أوامر البيع
+              {t('sales.orders')}
             </button>
             <button
               onClick={() => setActiveTab('customers')}
@@ -173,7 +209,7 @@ const SalesManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              العملاء
+              {t('sales.customers')}
             </button>
             <button
               onClick={() => setActiveTab('quotes')}
@@ -183,7 +219,7 @@ const SalesManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              عروض الأسعار
+              {t('sales.quotes')}
             </button>
           </nav>
         </div>
@@ -193,12 +229,12 @@ const SalesManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في أوامر البيع..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('sales.searchOrders')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -207,25 +243,25 @@ const SalesManagement: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        رقم الأمر
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('sales.orderNumber')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        العميل
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('sales.customer')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         التاريخ
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        عدد الأصناف
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('sales.items')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         الإجمالي
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         الحالة
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         الإجراءات
                       </th>
                     </tr>
@@ -282,12 +318,12 @@ const SalesManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في العملاء..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('sales.searchCustomers')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -319,11 +355,11 @@ const SalesManagement: React.FC = () => {
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                       <div>
-                        <p className="text-sm text-gray-600">إجمالي الطلبات</p>
+                        <p className="text-sm text-gray-600">{t('sales.totalOrders')}</p>
                         <p className="text-lg font-bold text-gray-900">{customer.totalOrders}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">إجمالي المبلغ</p>
+                        <p className="text-sm text-gray-600">{t('sales.totalAmount')}</p>
                         <p className="text-lg font-bold text-green-600">{customer.totalSpent.toLocaleString()} ر.س</p>
                       </div>
                     </div>
@@ -357,6 +393,21 @@ const SalesManagement: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <AddCustomerModal
+        isOpen={showAddCustomerModal}
+        onClose={() => setShowAddCustomerModal(false)}
+        onSave={handleSaveCustomer}
+      />
+
+      <AddSalesOrderModal
+        isOpen={showAddOrderModal}
+        onClose={() => setShowAddOrderModal(false)}
+        onSave={handleSaveOrder}
+        customers={customers}
+        products={products}
+      />
     </div>
   )
 }

@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import { Plus, Search, DollarSign, TrendingUp, TrendingDown, CreditCard } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import toast from 'react-hot-toast'
 
 const FinanceManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [activeTab, setActiveTab] = useState('overview')
 
   const accounts = [
@@ -11,7 +14,7 @@ const FinanceManagement: React.FC = () => {
     { id: '4', name: 'حسابات الموردين الدائنة', type: 'دائن', balance: -65000, currency: 'ر.س' }
   ]
 
-  const transactions = [
+  const [transactions, setTransactions] = useState([
     {
       id: '1',
       date: '2024-01-15',
@@ -39,7 +42,41 @@ const FinanceManagement: React.FC = () => {
       amount: 2500,
       reference: 'EXP-003'
     }
-  ]
+  ])
+
+  const handleReceiptVoucher = () => {
+    const newTransaction = {
+      id: (transactions.length + 1).toString(),
+      date: new Date().toISOString().split('T')[0],
+      description: 'سند قبض جديد - استلام دفعة من عميل',
+      account: 'البنك الأهلي',
+      type: 'credit' as const,
+      amount: Math.floor(Math.random() * 10000) + 5000,
+      reference: `RV-${String(transactions.length + 1).padStart(3, '0')}`
+    }
+    
+    setTransactions([newTransaction, ...transactions])
+    toast.success('تم إضافة سند قبض جديد بنجاح')
+  }
+
+  const handlePaymentVoucher = () => {
+    const newTransaction = {
+      id: (transactions.length + 1).toString(),
+      date: new Date().toISOString().split('T')[0],
+      description: 'سند صرف جديد - دفع مصروفات تشغيلية',
+      account: 'الصندوق الرئيسي',
+      type: 'debit' as const,
+      amount: Math.floor(Math.random() * 5000) + 1000,
+      reference: `PV-${String(transactions.length + 1).padStart(3, '0')}`
+    }
+    
+    setTransactions([newTransaction, ...transactions])
+    toast.success('تم إضافة سند صرف جديد بنجاح')
+  }
+
+  const handleJournalEntry = () => {
+    toast.success('تم فتح نموذج قيد اليومية')
+  }
 
   const getAccountTypeColor = (type: string) => {
     switch (type) {
@@ -56,22 +93,31 @@ const FinanceManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">الإدارة المالية</h1>
-          <p className="text-gray-600 mt-1">إدارة الحسابات المالية والمعاملات</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('finance.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('finance.description')}</p>
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          <button 
+            onClick={handleReceiptVoucher}
+            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>سند قبض</span>
+            <span>{t('finance.receiptVoucher')}</span>
           </button>
-          <button className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+          <button 
+            onClick={handlePaymentVoucher}
+            className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>سند صرف</span>
+            <span>{t('finance.paymentVoucher')}</span>
           </button>
-          <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+          <button 
+            onClick={handleJournalEntry}
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>قيد يومية</span>
+            <span>{t('finance.journalEntry')}</span>
           </button>
         </div>
       </div>
@@ -83,8 +129,8 @@ const FinanceManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <DollarSign className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي الأصول</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('finance.totalAssets')}</p>
               <p className="text-2xl font-bold text-gray-900">255,000 ر.س</p>
             </div>
           </div>
@@ -95,8 +141,8 @@ const FinanceManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <TrendingUp className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">الإيرادات الشهرية</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('finance.monthlyRevenue')}</p>
               <p className="text-2xl font-bold text-gray-900">185,000 ر.س</p>
             </div>
           </div>
@@ -107,8 +153,8 @@ const FinanceManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-red-100">
               <TrendingDown className="h-6 w-6 text-red-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">المصروفات الشهرية</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('finance.monthlyExpenses')}</p>
               <p className="text-2xl font-bold text-gray-900">125,000 ر.س</p>
             </div>
           </div>
@@ -119,8 +165,8 @@ const FinanceManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <CreditCard className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">صافي الربح</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('finance.netProfit')}</p>
               <p className="text-2xl font-bold text-green-600">60,000 ر.س</p>
             </div>
           </div>
@@ -139,7 +185,7 @@ const FinanceManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              نظرة عامة
+              {t('finance.overview')}
             </button>
             <button
               onClick={() => setActiveTab('accounts')}
@@ -149,7 +195,7 @@ const FinanceManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              الحسابات
+              {t('finance.accounts')}
             </button>
             <button
               onClick={() => setActiveTab('transactions')}
@@ -159,7 +205,7 @@ const FinanceManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              المعاملات
+              {t('finance.transactions')}
             </button>
             <button
               onClick={() => setActiveTab('reports')}
@@ -169,7 +215,7 @@ const FinanceManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              التقارير المالية
+              {t('finance.reports')}
             </button>
           </nav>
         </div>
@@ -180,18 +226,18 @@ const FinanceManagement: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Quick Stats */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">الملخص المالي</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('finance.financialSummary')}</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">إجمالي الإيرادات</span>
+                      <span className="text-sm font-medium text-gray-700">{t('finance.totalRevenue')}</span>
                       <span className="text-lg font-bold text-green-600">285,000 ر.س</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">إجمالي المصروفات</span>
+                      <span className="text-sm font-medium text-gray-700">{t('finance.totalExpenses')}</span>
                       <span className="text-lg font-bold text-red-600">180,000 ر.س</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">صافي الربح</span>
+                      <span className="text-sm font-medium text-gray-700">{t('finance.netProfit')}</span>
                       <span className="text-lg font-bold text-blue-600">105,000 ر.س</span>
                     </div>
                   </div>
@@ -199,18 +245,18 @@ const FinanceManagement: React.FC = () => {
 
                 {/* Cash Flow */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">التدفق النقدي</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('finance.cashFlow')}</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">النقد في الصندوق</span>
+                      <span className="text-sm font-medium text-gray-700">{t('finance.cashInHand')}</span>
                       <span className="text-lg font-bold text-gray-900">45,000 ر.س</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">أرصدة البنوك</span>
+                      <span className="text-sm font-medium text-gray-700">{t('finance.bankBalances')}</span>
                       <span className="text-lg font-bold text-gray-900">125,000 ر.س</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">إجمالي السيولة</span>
+                      <span className="text-sm font-medium text-gray-700">{t('finance.totalLiquidity')}</span>
                       <span className="text-lg font-bold text-primary-600">170,000 ر.س</span>
                     </div>
                   </div>
@@ -223,12 +269,12 @@ const FinanceManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في الحسابات..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('finance.searchAccounts')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -237,17 +283,17 @@ const FinanceManagement: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        اسم الحساب
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('finance.accountName')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        النوع
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('finance.accountType')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الرصيد
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('finance.balance')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        العملة
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('finance.currency')}
                       </th>
                     </tr>
                   </thead>
@@ -282,12 +328,12 @@ const FinanceManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في المعاملات..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('finance.searchTransactions')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -310,7 +356,7 @@ const FinanceManagement: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="text-left">
+                      <div className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
                         <div className={`text-sm font-bold ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
                           {transaction.type === 'credit' ? '+' : '-'}{transaction.amount.toLocaleString()} ر.س
                         </div>
@@ -332,7 +378,7 @@ const FinanceManagement: React.FC = () => {
                     <div className="p-3 rounded-lg bg-blue-100">
                       <DollarSign className="h-6 w-6 text-blue-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mr-3">قائمة الدخل</h3>
+                    <h3 className={`text-lg font-semibold text-gray-900 ${direction === 'rtl' ? 'mr-3' : 'ml-3'}`}>قائمة الدخل</h3>
                   </div>
                   <p className="text-sm text-gray-600">عرض الإيرادات والمصروفات وصافي الربح</p>
                 </div>
@@ -342,7 +388,7 @@ const FinanceManagement: React.FC = () => {
                     <div className="p-3 rounded-lg bg-green-100">
                       <TrendingUp className="h-6 w-6 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mr-3">الميزانية العمومية</h3>
+                    <h3 className={`text-lg font-semibold text-gray-900 ${direction === 'rtl' ? 'mr-3' : 'ml-3'}`}>الميزانية العمومية</h3>
                   </div>
                   <p className="text-sm text-gray-600">عرض الأصول والخصوم وحقوق الملكية</p>
                 </div>
@@ -352,7 +398,7 @@ const FinanceManagement: React.FC = () => {
                     <div className="p-3 rounded-lg bg-purple-100">
                       <CreditCard className="h-6 w-6 text-purple-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mr-3">التدفق النقدي</h3>
+                    <h3 className={`text-lg font-semibold text-gray-900 ${direction === 'rtl' ? 'mr-3' : 'ml-3'}`}>التدفق النقدي</h3>
                   </div>
                   <p className="text-sm text-gray-600">تتبع حركة النقد الداخل والخارج</p>
                 </div>

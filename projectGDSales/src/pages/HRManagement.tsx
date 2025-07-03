@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
 import { Plus, Search, Users, UserCheck, Calendar, DollarSign } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import toast from 'react-hot-toast'
 
 const HRManagement: React.FC = () => {
+  const { t, direction } = useLanguage()
   const [activeTab, setActiveTab] = useState('employees')
 
-  const employees = [
+  const [employees, setEmployees] = useState([
     {
       id: '1',
       name: 'أحمد محمد العلي',
@@ -38,7 +41,7 @@ const HRManagement: React.FC = () => {
       phone: '+966 56 456 7890',
       email: 'mohammed@company.com'
     }
-  ]
+  ])
 
   const salaryRecords = [
     {
@@ -73,6 +76,27 @@ const HRManagement: React.FC = () => {
     }
   ]
 
+  const handleAddEmployee = () => {
+    const newEmployee = {
+      id: (employees.length + 1).toString(),
+      name: 'موظف جديد',
+      position: 'موظف',
+      department: 'عام',
+      joinDate: new Date().toISOString().split('T')[0],
+      salary: 5000,
+      status: 'active' as const,
+      phone: '+966 50 000 0000',
+      email: 'new@company.com'
+    }
+    
+    setEmployees([...employees, newEmployee])
+    toast.success('تم إضافة موظف جديد بنجاح')
+  }
+
+  const handleProcessPayroll = () => {
+    toast.success('تم بدء معالجة الرواتب لجميع الموظفين')
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'text-green-600 bg-green-100'
@@ -98,18 +122,24 @@ const HRManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">إدارة الموارد البشرية</h1>
-          <p className="text-gray-600 mt-1">إدارة الموظفين والرواتب</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('hr.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('hr.description')}</p>
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          <button 
+            onClick={handleProcessPayroll}
+            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>معالجة رواتب</span>
+            <span>{t('hr.processPayroll')}</span>
           </button>
-          <button className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+          <button 
+            onClick={handleAddEmployee}
+            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
-            <span>إضافة موظف</span>
+            <span>{t('hr.addEmployee')}</span>
           </button>
         </div>
       </div>
@@ -121,8 +151,8 @@ const HRManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-blue-100">
               <Users className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي الموظفين</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('hr.totalEmployees')}</p>
               <p className="text-2xl font-bold text-gray-900">{employees.length}</p>
             </div>
           </div>
@@ -133,8 +163,8 @@ const HRManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-green-100">
               <UserCheck className="h-6 w-6 text-green-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">الموظفين النشطين</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('hr.activeEmployees')}</p>
               <p className="text-2xl font-bold text-gray-900">{employees.filter(emp => emp.status === 'active').length}</p>
             </div>
           </div>
@@ -145,8 +175,8 @@ const HRManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-purple-100">
               <DollarSign className="h-6 w-6 text-purple-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">إجمالي الرواتب</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('hr.totalSalaries')}</p>
               <p className="text-2xl font-bold text-gray-900">{employees.reduce((sum, emp) => sum + emp.salary, 0).toLocaleString()} ر.س</p>
             </div>
           </div>
@@ -157,9 +187,9 @@ const HRManagement: React.FC = () => {
             <div className="p-3 rounded-lg bg-orange-100">
               <Calendar className="h-6 w-6 text-orange-600" />
             </div>
-            <div className="mr-4">
-              <p className="text-sm font-medium text-gray-600">متوسط سنوات الخدمة</p>
-              <p className="text-2xl font-bold text-gray-900">1.2 سنة</p>
+            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <p className="text-sm font-medium text-gray-600">{t('hr.averageService')}</p>
+              <p className="text-2xl font-bold text-gray-900">1.2 {t('hr.years')}</p>
             </div>
           </div>
         </div>
@@ -177,7 +207,7 @@ const HRManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              الموظفين
+              {t('hr.employees')}
             </button>
             <button
               onClick={() => setActiveTab('salaries')}
@@ -187,7 +217,7 @@ const HRManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              الرواتب
+              {t('hr.salaries')}
             </button>
             <button
               onClick={() => setActiveTab('attendance')}
@@ -197,7 +227,7 @@ const HRManagement: React.FC = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              الحضور والانصراف
+              {t('hr.attendance')}
             </button>
           </nav>
         </div>
@@ -207,12 +237,12 @@ const HRManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في الموظفين..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('hr.searchEmployees')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -221,22 +251,22 @@ const HRManagement: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الموظف
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.employee')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        المنصب
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.position')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        القسم
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.department')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        تاريخ التعيين
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.hireDate')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الراتب
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.salary')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         الحالة
                       </th>
                     </tr>
@@ -253,7 +283,7 @@ const HRManagement: React.FC = () => {
                                 </span>
                               </div>
                             </div>
-                            <div className="mr-4">
+                            <div className={`${direction === 'rtl' ? 'mr-4' : 'ml-4'}`}>
                               <div className="text-sm font-medium text-gray-900">{employee.name}</div>
                               <div className="text-sm text-gray-500">{employee.email}</div>
                             </div>
@@ -288,12 +318,12 @@ const HRManagement: React.FC = () => {
             <div className="space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Search className={`absolute ${direction === 'rtl' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5`} />
                 <input
                   type="text"
-                  placeholder="البحث في الرواتب..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  dir="rtl"
+                  placeholder={t('hr.searchSalaries')}
+                  className={`w-full ${direction === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent`}
+                  dir={direction}
                 />
               </div>
 
@@ -302,25 +332,25 @@ const HRManagement: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الموظف
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.employee')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الشهر
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.month')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الراتب الأساسي
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.basicSalary')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        البدلات
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.allowances')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الخصومات
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.deductions')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        صافي الراتب
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                        {t('hr.netSalary')}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={`px-6 py-3 ${direction === 'rtl' ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                         الحالة
                       </th>
                     </tr>
