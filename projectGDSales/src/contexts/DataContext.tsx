@@ -1,5 +1,12 @@
-import React, { createContext, useContext, ReactNode } from 'react'
-import { useLocalStorage } from '../hooks/useLocalStorage'
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react'
+import { 
+  usersAPI, 
+  productsAPI, 
+  customersAPI, 
+  salesOrdersAPI,
+  reportsAPI 
+} from '../services/api'
+import toast from 'react-hot-toast'
 
 interface Product {
   id: string
@@ -12,10 +19,10 @@ interface Product {
   status: 'active' | 'inactive'
   image: string
   description: string
-  minStock?: number
-  maxStock?: number
+  min_stock?: number
+  max_stock?: number
   unit?: string
-  createdAt: string
+  created_at: string
 }
 
 interface User {
@@ -25,10 +32,10 @@ interface User {
   role: string
   department: string
   status: 'active' | 'inactive'
-  lastLogin: string
+  last_login: string
   permissions: string[]
   phone?: string
-  createdAt: string
+  created_at: string
 }
 
 interface Customer {
@@ -38,56 +45,67 @@ interface Customer {
   phone: string
   email: string
   address: string
-  taxNumber?: string
-  creditLimit: number
-  paymentTerms: number
-  customerType: string
+  tax_number?: string
+  credit_limit: number
+  payment_terms: number
+  customer_type: string
   status: string
-  totalOrders: number
-  totalSpent: number
-  createdAt: string
+  total_orders: number
+  total_spent: number
+  created_at: string
 }
 
 interface SalesOrder {
   id: string
-  customer: string
-  date: string
-  deliveryDate: string
-  items: number
+  customer_id: string
+  customer_name: string
+  order_date: string
+  delivery_date: string
+  items: any[]
   total: number
   subtotal: number
   discount: number
   tax: number
   status: string
   notes: string
-  orderItems: any[]
-  createdAt: string
+  created_at: string
 }
 
 interface DataContextType {
+  // Loading states
+  loading: boolean
+  
   // Products
   products: Product[]
-  addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void
-  updateProduct: (id: string, product: Partial<Product>) => void
-  deleteProduct: (id: string) => void
+  addProduct: (product: Omit<Product, 'id' | 'created_at'>) => Promise<void>
+  updateProduct: (id: string, product: Partial<Product>) => Promise<void>
+  deleteProduct: (id: string) => Promise<void>
+  refreshProducts: () => Promise<void>
   
   // Users
   users: User[]
-  addUser: (user: Omit<User, 'id' | 'lastLogin' | 'createdAt'>) => void
-  updateUser: (id: string, user: Partial<User>) => void
-  deleteUser: (id: string) => void
+  addUser: (user: Omit<User, 'id' | 'last_login' | 'created_at'>) => Promise<void>
+  updateUser: (id: string, user: Partial<User>) => Promise<void>
+  deleteUser: (id: string) => Promise<void>
+  refreshUsers: () => Promise<void>
   
   // Customers
   customers: Customer[]
-  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'>) => void
-  updateCustomer: (id: string, customer: Partial<Customer>) => void
-  deleteCustomer: (id: string) => void
+  addCustomer: (customer: Omit<Customer, 'id' | 'created_at'>) => Promise<void>
+  updateCustomer: (id: string, customer: Partial<Customer>) => Promise<void>
+  deleteCustomer: (id: string) => Promise<void>
+  refreshCustomers: () => Promise<void>
   
   // Sales Orders
   salesOrders: SalesOrder[]
-  addSalesOrder: (order: Omit<SalesOrder, 'id' | 'createdAt'>) => void
-  updateSalesOrder: (id: string, order: Partial<SalesOrder>) => void
-  deleteSalesOrder: (id: string) => void
+  addSalesOrder: (order: any) => Promise<void>
+  updateSalesOrder: (id: string, order: Partial<SalesOrder>) => Promise<void>
+  deleteSalesOrder: (id: string) => Promise<void>
+  refreshSalesOrders: () => Promise<void>
+
+  // Dashboard stats
+  dashboardStats: any
+  refreshDashboardStats: () => Promise<void>
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -100,228 +118,371 @@ export const useData = () => {
   return context
 }
 
-const initialProducts: Product[] = [
-  {
-    id: '1',
-    name: 'قميص قطني رجالي',
-    category: 'قمصان رجالية',
-    price: 120,
-    cost: 80,
-    stock: 156,
-    sku: 'SH-001',
-    status: 'active',
-    image: 'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=300',
-    description: 'قميص قطني عالي الجودة للرجال',
-    minStock: 50,
-    maxStock: 200,
-    unit: 'قطعة',
-    createdAt: '2024-01-01T00:00:00.000Z'
-  },
-  {
-    id: '2',
-    name: 'فستان صيفي نسائي',
-    category: 'فساتين نسائية',
-    price: 200,
-    cost: 130,
-    stock: 89,
-    sku: 'DR-002',
-    status: 'active',
-    image: 'https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=300',
-    description: 'فستان صيفي أنيق ومريح',
-    minStock: 30,
-    maxStock: 100,
-    unit: 'قطعة',
-    createdAt: '2024-01-01T00:00:00.000Z'
-  },
-  {
-    id: '3',
-    name: 'بنطلون جينز',
-    category: 'بناطيل',
-    price: 180,
-    cost: 120,
-    stock: 34,
-    sku: 'JP-003',
-    status: 'active',
-    image: 'https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg?auto=compress&cs=tinysrgb&w=300',
-    description: 'بنطلون جينز كلاسيكي',
-    minStock: 40,
-    maxStock: 150,
-    unit: 'قطعة',
-    createdAt: '2024-01-01T00:00:00.000Z'
-  }
-]
-
-const initialUsers: User[] = [
-  {
-    id: '1',
-    name: 'أحمد محمد',
-    email: 'ahmed@example.com',
-    role: 'مدير النظام',
-    department: 'تقنية المعلومات',
-    status: 'active',
-    lastLogin: '2024-01-15 10:30',
-    permissions: ['all'],
-    phone: '+966 50 123 4567',
-    createdAt: '2024-01-01T00:00:00.000Z'
-  },
-  {
-    id: '2',
-    name: 'فاطمة علي',
-    email: 'fatma@example.com',
-    role: 'مدير مبيعات',
-    department: 'المبيعات',
-    status: 'active',
-    lastLogin: '2024-01-15 09:15',
-    permissions: ['sales', 'customers', 'reports'],
-    phone: '+966 55 987 6543',
-    createdAt: '2024-01-01T00:00:00.000Z'
-  }
-]
-
-const initialCustomers: Customer[] = [
-  {
-    id: '1',
-    name: 'متجر الأناقة',
-    contact: 'سعد أحمد',
-    phone: '+966 50 123 4567',
-    email: 'info@elegance-store.com',
-    address: 'الرياض، المملكة العربية السعودية',
-    creditLimit: 50000,
-    paymentTerms: 30,
-    customerType: 'wholesale',
-    status: 'active',
-    totalOrders: 12,
-    totalSpent: 145000,
-    createdAt: '2024-01-01T00:00:00.000Z'
-  }
-]
-
-const initialSalesOrders: SalesOrder[] = [
-  {
-    id: 'SO-001',
-    customer: 'متجر الأناقة',
-    date: '2024-01-15',
-    deliveryDate: '2024-01-18',
-    items: 8,
-    total: 12500,
-    subtotal: 12000,
-    discount: 500,
-    tax: 1000,
-    status: 'confirmed',
-    notes: 'طلب عاجل',
-    orderItems: [],
-    createdAt: '2024-01-15T00:00:00.000Z'
-  }
-]
-
 interface DataProviderProps {
   children: ReactNode
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const [products, setProducts] = useLocalStorage<Product[]>('factory_products', initialProducts)
-  const [users, setUsers] = useLocalStorage<User[]>('factory_users', initialUsers)
-  const [customers, setCustomers] = useLocalStorage<Customer[]>('factory_customers', initialCustomers)
-  const [salesOrders, setSalesOrders] = useLocalStorage<SalesOrder[]>('factory_sales_orders', initialSalesOrders)
+  const [loading, setLoading] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([])
+  const [dashboardStats, setDashboardStats] = useState<any>({})
 
-  // Product functions
-  const addProduct = (productData: Omit<Product, 'id' | 'createdAt'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
+  // Products functions
+  const refreshProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await productsAPI.getAll()
+      if (response.success) {
+        setProducts(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      toast.error('خطأ في تحميل المنتجات')
+    } finally {
+      setLoading(false)
     }
-    setProducts(prev => [newProduct, ...prev])
   }
 
-  const updateProduct = (id: string, productData: Partial<Product>) => {
-    setProducts(prev => prev.map(product => 
-      product.id === id ? { ...product, ...productData } : product
-    ))
-  }
-
-  const deleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(product => product.id !== id))
-  }
-
-  // User functions
-  const addUser = (userData: Omit<User, 'id' | 'lastLogin' | 'createdAt'>) => {
-    const newUser: User = {
-      ...userData,
-      id: Date.now().toString(),
-      lastLogin: 'لم يسجل دخول بعد',
-      createdAt: new Date().toISOString()
+  const addProduct = async (productData: Omit<Product, 'id' | 'created_at'>) => {
+    try {
+      setLoading(true)
+      const response = await productsAPI.create(productData)
+      if (response.success) {
+        setProducts(prev => [response.data, ...prev])
+        toast.success('تم إضافة المنتج بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error adding product:', error)
+      toast.error(error.message || 'خطأ في إضافة المنتج')
+      throw error
+    } finally {
+      setLoading(false)
     }
-    setUsers(prev => [newUser, ...prev])
   }
 
-  const updateUser = (id: string, userData: Partial<User>) => {
-    setUsers(prev => prev.map(user => 
-      user.id === id ? { ...user, ...userData } : user
-    ))
-  }
-
-  const deleteUser = (id: string) => {
-    setUsers(prev => prev.filter(user => user.id !== id))
-  }
-
-  // Customer functions
-  const addCustomer = (customerData: Omit<Customer, 'id' | 'createdAt'>) => {
-    const newCustomer: Customer = {
-      ...customerData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
+  const updateProduct = async (id: string, productData: Partial<Product>) => {
+    try {
+      setLoading(true)
+      const response = await productsAPI.update(id, productData)
+      if (response.success) {
+        setProducts(prev => prev.map(product => 
+          product.id === id ? response.data : product
+        ))
+        toast.success('تم تحديث المنتج بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error updating product:', error)
+      toast.error(error.message || 'خطأ في تحديث المنتج')
+      throw error
+    } finally {
+      setLoading(false)
     }
-    setCustomers(prev => [newCustomer, ...prev])
   }
 
-  const updateCustomer = (id: string, customerData: Partial<Customer>) => {
-    setCustomers(prev => prev.map(customer => 
-      customer.id === id ? { ...customer, ...customerData } : customer
-    ))
-  }
-
-  const deleteCustomer = (id: string) => {
-    setCustomers(prev => prev.filter(customer => customer.id !== id))
-  }
-
-  // Sales Order functions
-  const addSalesOrder = (orderData: Omit<SalesOrder, 'id' | 'createdAt'>) => {
-    const newOrder: SalesOrder = {
-      ...orderData,
-      id: `SO-${String(Date.now()).slice(-6)}`,
-      createdAt: new Date().toISOString()
+  const deleteProduct = async (id: string) => {
+    try {
+      setLoading(true)
+      const response = await productsAPI.delete(id)
+      if (response.success) {
+        setProducts(prev => prev.filter(product => product.id !== id))
+        toast.success('تم حذف المنتج بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error deleting product:', error)
+      toast.error(error.message || 'خطأ في حذف المنتج')
+      throw error
+    } finally {
+      setLoading(false)
     }
-    setSalesOrders(prev => [newOrder, ...prev])
   }
 
-  const updateSalesOrder = (id: string, orderData: Partial<SalesOrder>) => {
-    setSalesOrders(prev => prev.map(order => 
-      order.id === id ? { ...order, ...orderData } : order
-    ))
+  // Users functions
+  const refreshUsers = async () => {
+    try {
+      setLoading(true)
+      const response = await usersAPI.getAll()
+      if (response.success) {
+        setUsers(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      toast.error('خطأ في تحميل المستخدمين')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const deleteSalesOrder = (id: string) => {
-    setSalesOrders(prev => prev.filter(order => order.id !== id))
+  const addUser = async (userData: Omit<User, 'id' | 'last_login' | 'created_at'>) => {
+    try {
+      setLoading(true)
+      const response = await usersAPI.create(userData)
+      if (response.success) {
+        setUsers(prev => [response.data, ...prev])
+        toast.success('تم إضافة المستخدم بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error adding user:', error)
+      toast.error(error.message || 'خطأ في إضافة المستخدم')
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const updateUser = async (id: string, userData: Partial<User>) => {
+    try {
+      setLoading(true)
+      const response = await usersAPI.update(id, userData)
+      if (response.success) {
+        setUsers(prev => prev.map(user => 
+          user.id === id ? response.data : user
+        ))
+        toast.success('تم تحديث المستخدم بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error updating user:', error)
+      toast.error(error.message || 'خطأ في تحديث المستخدم')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteUser = async (id: string) => {
+    try {
+      setLoading(true)
+      const response = await usersAPI.delete(id)
+      if (response.success) {
+        setUsers(prev => prev.filter(user => user.id !== id))
+        toast.success('تم حذف المستخدم بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error deleting user:', error)
+      toast.error(error.message || 'خطأ في حذف المستخدم')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Customers functions
+  const refreshCustomers = async () => {
+    try {
+      setLoading(true)
+      const response = await customersAPI.getAll()
+      if (response.success) {
+        setCustomers(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error)
+      toast.error('خطأ في تحميل العملاء')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at'>) => {
+    try {
+      setLoading(true)
+      const response = await customersAPI.create(customerData)
+      if (response.success) {
+        setCustomers(prev => [response.data, ...prev])
+        toast.success('تم إضافة العميل بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error adding customer:', error)
+      toast.error(error.message || 'خطأ في إضافة العميل')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
+    try {
+      setLoading(true)
+      const response = await customersAPI.update(id, customerData)
+      if (response.success) {
+        setCustomers(prev => prev.map(customer => 
+          customer.id === id ? response.data : customer
+        ))
+        toast.success('تم تحديث العميل بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error updating customer:', error)
+      toast.error(error.message || 'خطأ في تحديث العميل')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteCustomer = async (id: string) => {
+    try {
+      setLoading(true)
+      const response = await customersAPI.delete(id)
+      if (response.success) {
+        setCustomers(prev => prev.filter(customer => customer.id !== id))
+        toast.success('تم حذف العميل بنجاح')
+      }
+    } catch (error: any) {
+      console.error('Error deleting customer:', error)
+      toast.error(error.message || 'خطأ في حذف العميل')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Sales Orders functions
+  const refreshSalesOrders = async () => {
+    try {
+      setLoading(true)
+      const response = await salesOrdersAPI.getAll()
+      if (response.success) {
+        setSalesOrders(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching sales orders:', error)
+      toast.error('خطأ في تحميل أوامر البيع')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addSalesOrder = async (orderData: any) => {
+    try {
+      setLoading(true)
+      
+      // Transform order data for API
+      const apiOrderData = {
+        customer_id: orderData.customer_id,
+        order_date: orderData.date,
+        delivery_date: orderData.deliveryDate,
+        subtotal: orderData.subtotal,
+        discount: orderData.discount,
+        tax: orderData.tax,
+        total: orderData.total,
+        status: orderData.status,
+        notes: orderData.notes,
+        items: orderData.orderItems.map((item: any) => ({
+          product_id: item.product,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total
+        }))
+      }
+
+      const response = await salesOrdersAPI.create(apiOrderData)
+      if (response.success) {
+        setSalesOrders(prev => [response.data, ...prev])
+        toast.success('تم إنشاء أمر البيع بنجاح')
+        // Refresh products to update stock
+        await refreshProducts()
+      }
+    } catch (error: any) {
+      console.error('Error adding sales order:', error)
+      toast.error(error.message || 'خطأ في إنشاء أمر البيع')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateSalesOrder = async (id: string, orderData: Partial<SalesOrder>) => {
+    try {
+      setLoading(true)
+      if (orderData.status) {
+        const response = await salesOrdersAPI.updateStatus(id, orderData.status)
+        if (response.success) {
+          setSalesOrders(prev => prev.map(order => 
+            order.id === id ? { ...order, status: orderData.status! } : order
+          ))
+          toast.success('تم تحديث حالة الطلب بنجاح')
+        }
+      }
+    } catch (error: any) {
+      console.error('Error updating sales order:', error)
+      toast.error(error.message || 'خطأ في تحديث أمر البيع')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteSalesOrder = async (id: string) => {
+    try {
+      setLoading(true)
+      const response = await salesOrdersAPI.delete(id)
+      if (response.success) {
+        setSalesOrders(prev => prev.filter(order => order.id !== id))
+        toast.success('تم حذف أمر البيع بنجاح')
+        // Refresh products to update stock
+        await refreshProducts()
+      }
+    } catch (error: any) {
+      console.error('Error deleting sales order:', error)
+      toast.error(error.message || 'خطأ في حذف أمر البيع')
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Dashboard stats
+  const refreshDashboardStats = async () => {
+    try {
+      const response = await reportsAPI.getDashboard()
+      if (response.success) {
+        setDashboardStats(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error)
+    }
+  }
+
+  // Initial data load
+  useEffect(() => {
+    const loadInitialData = async () => {
+      await Promise.all([
+        refreshProducts(),
+        refreshUsers(),
+        refreshCustomers(),
+        refreshSalesOrders(),
+        refreshDashboardStats()
+      ])
+    }
+
+    loadInitialData()
+  }, [])
 
   const value = {
+    loading,
     products,
     addProduct,
     updateProduct,
     deleteProduct,
+    refreshProducts,
     users,
     addUser,
     updateUser,
     deleteUser,
+    refreshUsers,
     customers,
     addCustomer,
     updateCustomer,
     deleteCustomer,
+    refreshCustomers,
     salesOrders,
     addSalesOrder,
     updateSalesOrder,
-    deleteSalesOrder
+    deleteSalesOrder,
+    refreshSalesOrders,
+    dashboardStats,
+    refreshDashboardStats
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

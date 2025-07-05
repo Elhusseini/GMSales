@@ -20,7 +20,7 @@ const AddSalesOrderModal: React.FC<AddSalesOrderModalProps> = ({
 }) => {
   const { t, direction } = useLanguage()
   const [formData, setFormData] = useState({
-    customer: '',
+    customer_id: '',
     orderDate: new Date().toISOString().split('T')[0],
     deliveryDate: '',
     notes: '',
@@ -38,8 +38,8 @@ const AddSalesOrderModal: React.FC<AddSalesOrderModalProps> = ({
   const validateForm = () => {
     const newErrors: any = {}
 
-    if (!formData.customer) {
-      newErrors.customer = 'العميل مطلوب'
+    if (!formData.customer_id) {
+      newErrors.customer_id = 'العميل مطلوب'
     }
 
     if (!formData.deliveryDate) {
@@ -71,8 +71,7 @@ const AddSalesOrderModal: React.FC<AddSalesOrderModalProps> = ({
       const total = subtotal - discountAmount + taxAmount
 
       const orderData = {
-        id: `SO-${String(Date.now()).slice(-6)}`,
-        customer: customers.find(c => c.id === formData.customer)?.name || '',
+        customer_id: formData.customer_id,
         date: formData.orderDate,
         deliveryDate: formData.deliveryDate,
         items: validItems.length,
@@ -87,12 +86,11 @@ const AddSalesOrderModal: React.FC<AddSalesOrderModalProps> = ({
       }
 
       onSave(orderData)
-      toast.success('تم إنشاء أمر البيع بنجاح')
       onClose()
       
       // Reset form
       setFormData({
-        customer: '',
+        customer_id: '',
         orderDate: new Date().toISOString().split('T')[0],
         deliveryDate: '',
         notes: '',
@@ -174,10 +172,10 @@ const AddSalesOrderModal: React.FC<AddSalesOrderModalProps> = ({
                   العميل *
                 </label>
                 <select
-                  value={formData.customer}
-                  onChange={(e) => handleChange('customer', e.target.value)}
+                  value={formData.customer_id}
+                  onChange={(e) => handleChange('customer_id', e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                    errors.customer ? 'border-red-500' : 'border-gray-300'
+                    errors.customer_id ? 'border-red-500' : 'border-gray-300'
                   }`}
                 >
                   <option value="">اختر العميل</option>
@@ -185,7 +183,7 @@ const AddSalesOrderModal: React.FC<AddSalesOrderModalProps> = ({
                     <option key={customer.id} value={customer.id}>{customer.name}</option>
                   ))}
                 </select>
-                {errors.customer && <p className="text-red-500 text-xs mt-1">{errors.customer}</p>}
+                {errors.customer_id && <p className="text-red-500 text-xs mt-1">{errors.customer_id}</p>}
               </div>
 
               <div>
